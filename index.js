@@ -44,7 +44,7 @@ client.on('message', msg => {
   const guildMembers = msg.guild.members;
   const roles = msg.guild.roles;
   const userRoles = msg.member.roles;
-
+  const role = roles.find('name', 'Winston');
   //handle args into commands
   const args = msg.content
     .slice(prefix.length)
@@ -57,19 +57,14 @@ client.on('message', msg => {
   //Role command
   if (command === 'role') {
     let [roleName] = args;
-
-    console.log(roleName, 'the role to be added');
     if (!roleName) return;
     const role = roles.find('name', roleName);
     if (!role) {
       const err = `${roleName} role does not exist! `;
       msg.reply(err);
     }
-    console.log(roles, 'roles avail');
-    console.log(role, 'found the role');
 
     if (role && userRoles.has(role.id)) {
-      console.log(`Yay, the author of the message has the role!`);
       msg.member
         .removeRole(role)
         .then(() => {
@@ -78,7 +73,6 @@ client.on('message', msg => {
         })
         .catch(console.error);
     } else {
-      console.log(`Nope, noppers, nadda.`);
       msg.member
         .addRole(role)
         .then(() => {
@@ -99,28 +93,21 @@ client.on('message', msg => {
 
   //List roles
   if (command === 'roles') {
-    console.log(msg.guild.roles, 'guild info');
+    const filteredRoles = roles.filter(r => {
+      if (role && role.position && r.position < role.position) {
+        return r;
+      }
+    });
 
     let rolesAvailable = '';
-
-    roles.forEach(r => {
-      console.log(r.name, r.members.size, 'r info');
-
+    filteredRoles.forEach(r => {
       rolesAvailable += r.name + ': ' + r.members.size + ' Members  \n';
     });
 
-    // for (const role in roles) {
-    //   console.log(roles[role], 'its a role yo');
-    //   rolesAvailable += '$' + 'test:  \n';
-    // }
-
-    // console.log(rolesAvailable, 'yello');
     msg.channel.send(`\`\`\`css
 Roles Available:
 ${rolesAvailable}
     \`\`\``);
-
-    // console.log(cliennnnntmember, 'THIS IS THE MEMBER');
   }
 
   if (msg.content.startsWith(prefix + 'Start Campaign')) {
