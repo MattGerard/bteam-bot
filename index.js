@@ -62,6 +62,7 @@ client.on('message', msg => {
     if (!role) {
       const err = `${roleName} role does not exist! `;
       msg.reply(err);
+      return;
     }
 
     if (role && userRoles.has(role.id)) {
@@ -71,7 +72,14 @@ client.on('message', msg => {
           const message = `${roleName} role has been removed!`;
           msg.reply(message);
         })
-        .catch(console.error);
+        .catch(error => {
+          const err = `${
+            error.message === `Missing Permissions`
+              ? `Remove Permissions not available for that role, sorry.`
+              : error.message
+          }`;
+          msg.reply(err);
+        });
     } else {
       msg.member
         .addRole(role)
@@ -79,7 +87,14 @@ client.on('message', msg => {
           const message = `has been added to ${roleName} role!`;
           msg.reply(message);
         })
-        .catch(console.error);
+        .catch(error => {
+          const err = `${
+            error.message === `Missing Permissions`
+              ? `Add Permissions not available for that role, sorry.`
+              : error.message
+          }`;
+          msg.reply(err);
+        });
     }
 
     // Check if they have one of many roles
@@ -94,20 +109,33 @@ client.on('message', msg => {
   //List roles
   if (command === 'roles') {
     const filteredRoles = roles.filter(r => {
-      if (role && role.position && r.position < role.position) {
+      if (role && role.position && r.position < role.position && r.position !== 0 && !r.managed) {
         return r;
       }
     });
-
-    let rolesAvailable = '';
+    console.log(filteredRoles, 'yada');
+    let rolesAvailable = [];
     filteredRoles.forEach(r => {
-      rolesAvailable += r.name + ': ' + r.members.size + ' Members  \n';
+      rolesAvailable.push({
+        name: `${r.name}`,
+        value: `Join **${r.members.size}** members in conversation.`,
+        inline: true,
+      });
     });
 
-    msg.channel.send(`\`\`\`css
-Roles Available:
-${rolesAvailable}
-    \`\`\``);
+    const embed = {
+      embed: {
+        color: 13369344,
+        description:
+          'The following roles are available to add to yourself using "**!role rolename**"',
+        fields: rolesAvailable,
+        footer: {
+          text: 'Use "!role rolename", to give yourself a new role to view more chatrooms.',
+        },
+      },
+    };
+
+    msg.channel.send(embed);
   }
 
   if (msg.content.startsWith(prefix + 'Start Campaign')) {
@@ -116,18 +144,6 @@ ${rolesAvailable}
 
   if (msg.content.startsWith(prefix + 'PURGETHEMALL')) {
     async function purge() {
-      // Delete a message
-      // msg
-      //   .delete()
-      //   .then(mssg => console.log(`Deleted message from ${mssg.author}`))
-      //   .catch(console.error);
-
-      // Get messages
-      // msg.channel
-      //   .fetchMessages({limit: 10})
-      //   .then(messages => console.log(`Received ${messages.size} messages`))
-      //   .catch(console.error);
-
       const fetched = await msg.channel.fetchMessages({limit: 100}); // This grabs the last number(args) of messages in the channel.
       // Deleting the messages
       msg.channel.bulkDelete(fetched).catch(error => msg.channel.send(`Error: ${error}`)); // If it finds an error, it posts it into the channel.
@@ -136,6 +152,19 @@ ${rolesAvailable}
     // We want to make sure we call the function whenever the purge command is run.
     purge(); // Make sure this is inside the if(msg.startsWith)
   }
+
+  //DELETEING MESSAGES NOTES:
+  // Delete a message
+  // msg
+  //   .delete()
+  //   .then(mssg => console.log(`Deleted message from ${mssg.author}`))
+  //   .catch(console.error);
+
+  // Get messages
+  // msg.channel
+  //   .fetchMessages({limit: 10})
+  //   .then(messages => console.log(`Received ${messages.size} messages`))
+  //   .catch(console.error);
 
   // sql
   //   .get(`SELECT * FROM scores WHERE userId ="${message.author.id}"`)
@@ -189,3 +218,8 @@ ${rolesAvailable}
 
 //Login the bot
 client.login(token);
+
+//ERROR HANDLING
+// client.on('error', e => console.error(e));
+// client.on('warn', e => console.warn(e));
+// client.on('debug', e => console.info(e));
