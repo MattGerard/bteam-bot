@@ -1,4 +1,4 @@
-export default function(client, msg, args) {
+module.exports = (client, msg, args) => {
   const guild = msg.guild;
   const guildMembers = msg.guild.members;
   const roles = msg.guild.roles;
@@ -33,4 +33,4 @@ export default function(client, msg, args) {
   };
 
   msg.channel.send(embed);
-}
+};

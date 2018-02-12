@@ -10,8 +10,8 @@ const client = new Discord.Client();
 // const sql = require('sqlite');
 require('dotenv').config();
 
-import role from './commands/role';
-import roles from './commands/roles';
+const roleCMD = require('./commands/role');
+const rolesCMD = require('./commands/roles');
 
 // sql.open('./score.sqlite');
 
@@ -63,12 +63,12 @@ client.on('message', msg => {
 
   //Role command
   if (command === 'role') {
-    role(client, msg, args);
+    roleCMD(client, msg, args);
   }
   //client.user.setGame(`on ${client.guilds.size} servers`);
   //List roles
   if (command === 'roles') {
-    roles(client, msg, args);
+    rolesCMD(client, msg, args);
   }
 
   // if (msg.content.startsWith(prefix + 'Start Campaign')) {
