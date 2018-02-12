@@ -1,5 +1,5 @@
 /*
-  A discord bot - Game Master for Will
+  A discord bot - bteam helper bot
 */
 const _ = require('lodash');
 // Import the discord.js module
@@ -7,25 +7,33 @@ const Discord = require('discord.js');
 
 // Create an instance of a Discord client
 const client = new Discord.Client();
-const sql = require('sqlite');
+// const sql = require('sqlite');
 require('dotenv').config();
 
-sql.open('./score.sqlite');
+import role from './commands/role';
+import roles from './commands/roles';
+
+// sql.open('./score.sqlite');
 
 // The token of your bot - https://discordapp.com/developers/applications/me
 const token = process.env.DISCORD_TOKEN;
 //client id of the bot to put a maker against other roles.
 const clientId = process.env.DISCORD_CLIENT_ID;
-function findGameChannel() {
-  //find the discord channels you want to update, name your channel hll-kickstarter, or whatever - needs to be here.
-  const channel = client.channels.find('name', 'will-the-calling');
-  // const message = 'Do you want to play a game?';
-  // channel.send(message);
-}
+// function findGameChannel() {
+//   //find the discord channels you want to update, name your channel hll-kickstarter, or whatever - needs to be here.
+//   const channel = client.channels.find('name', 'will-the-calling');
+//   // const message = 'Do you want to play a game?';
+//   // channel.send(message);
+// }
 
 // bot is ready - do it!
 client.on('ready', () => {
-  findGameChannel();
+  console.log(
+    `Bot has started, with ${client.users.size} users, in ${client.channels.size} channels of ${
+      client.guilds.size
+    } guilds.`
+  );
+  client.user.setGame(`on ${client.guilds.size} servers`);
 });
 
 const prefix = '!';
@@ -33,9 +41,8 @@ const prefix = '!';
 //Ready Messages
 client.on('message', msg => {
   const prefix = '!';
-  // Exit and stop if prefix is not there
-  if (!msg.content.startsWith(prefix)) return;
-  if (msg.author.bot) return; // Ignore bots.
+  // Exit and stop if prefix is not there  // Ignore bots.
+  if (!msg.content.startsWith(prefix) || msg.author.bot) return;
   if (msg.channel.type === 'dm') return; //Ignore all DM's
   // const cliennnnntmember = client.users.get(clientId);
 
@@ -56,102 +63,28 @@ client.on('message', msg => {
 
   //Role command
   if (command === 'role') {
-    let [roleName] = args;
-    if (!roleName) return;
-    const role = roles.find('name', roleName);
-    if (!role) {
-      const err = `${roleName} role does not exist! `;
-      msg.reply(err);
-      return;
-    }
-
-    if (role && userRoles.has(role.id)) {
-      msg.member
-        .removeRole(role)
-        .then(() => {
-          const message = `${roleName} role has been removed!`;
-          msg.reply(message);
-        })
-        .catch(error => {
-          const err = `${
-            error.message === `Missing Permissions`
-              ? `Remove Permissions not available for that role, sorry.`
-              : error.message
-          }`;
-          msg.reply(err);
-        });
-    } else {
-      msg.member
-        .addRole(role)
-        .then(() => {
-          const message = `has been added to ${roleName} role!`;
-          msg.reply(message);
-        })
-        .catch(error => {
-          const err = `${
-            error.message === `Missing Permissions`
-              ? `Add Permissions not available for that role, sorry.`
-              : error.message
-          }`;
-          msg.reply(err);
-        });
-    }
-
-    // Check if they have one of many roles
-    // if(message.member.roles.some(r=>["Dev", "Mod", "Server Staff", "Proficient"].includes(r.name)) ) {
-    //   // has one of the roles
-    // } else {
-    //   // has none of the roles
-    // }
-    // console.log(msg.content[])
+    role(client, msg, args);
   }
-
+  //client.user.setGame(`on ${client.guilds.size} servers`);
   //List roles
   if (command === 'roles') {
-    const filteredRoles = roles.filter(r => {
-      if (role && role.position && r.position < role.position && r.position !== 0 && !r.managed) {
-        return r;
-      }
-    });
-    console.log(filteredRoles, 'yada');
-    let rolesAvailable = [];
-    filteredRoles.forEach(r => {
-      rolesAvailable.push({
-        name: `${r.name}`,
-        value: `Join **${r.members.size}** members in conversation.`,
-        inline: true,
-      });
-    });
-
-    const embed = {
-      embed: {
-        color: 13369344,
-        description:
-          'The following roles are available to add to yourself using "**!role rolename**"',
-        fields: rolesAvailable,
-        footer: {
-          text: 'Use "!role rolename", to give yourself a new role to view more chatrooms.',
-        },
-      },
-    };
-
-    msg.channel.send(embed);
+    roles(client, msg, args);
   }
 
-  if (msg.content.startsWith(prefix + 'Start Campaign')) {
-    msg.channel.send('Lets begin!');
-  }
+  // if (msg.content.startsWith(prefix + 'Start Campaign')) {
+  //   msg.channel.send('Lets begin!');
+  // }
 
-  if (msg.content.startsWith(prefix + 'PURGETHEMALL')) {
-    async function purge() {
-      const fetched = await msg.channel.fetchMessages({limit: 100}); // This grabs the last number(args) of messages in the channel.
-      // Deleting the messages
-      msg.channel.bulkDelete(fetched).catch(error => msg.channel.send(`Error: ${error}`)); // If it finds an error, it posts it into the channel.
-    }
+  // if (msg.content.startsWith(prefix + 'PURGETHEMALL')) {
+  //   async function purge() {
+  //     const fetched = await msg.channel.fetchMessages({limit: 100}); // This grabs the last number(args) of messages in the channel.
+  //     // Deleting the messages
+  //     msg.channel.bulkDelete(fetched).catch(error => msg.channel.send(`Error: ${error}`)); // If it finds an error, it posts it into the channel.
+  //   }
 
-    // We want to make sure we call the function whenever the purge command is run.
-    purge(); // Make sure this is inside the if(msg.startsWith)
-  }
+  //   // We want to make sure we call the function whenever the purge command is run.
+  //   purge(); // Make sure this is inside the if(msg.startsWith)
+  // }
 
   //DELETEING MESSAGES NOTES:
   // Delete a message
